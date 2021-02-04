@@ -1,0 +1,294 @@
+/**
+ * 
+ */
+package edu.wou.cs260.SpellChecker;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Set;
+
+
+/**
+ * @author Mitchel
+ *
+ */
+public class OpenChainHashSet<E> implements Set<E>, CompareCount {
+
+	// ---------------------------------
+	// ---- OpenChainHashSet Fields ----
+	// ---------------------------------
+	private int tableSize = 0;
+	private int size = 0;
+	private int compareCount = 0;
+	private DLList<E>[] hashTable;
+	
+	
+	// --------------------------------------
+	// ---- Inner class for the iterator ----
+	// --------------------------------------	
+	class HTIterator implements Iterator<E> {
+		int currIndex = 0;
+        Iterator<E> currIt = null;
+
+		HTIterator( ) 
+		{
+			if ( hashTable[ 0] != null) {
+				currIt = hashTable[ currIndex].iterator( );
+			}
+			else {
+				getNextList( );
+			}
+
+		}
+		
+		void getNextList( ) {
+			//Make sure that the current list is done
+			if (( currIt != null) && ( currIt.hasNext( )) ) {
+				return;
+			}
+			else {  //Set currIt to null as this list is done
+				currIt = null;				
+			}
+
+			//Loop from the current index to the next non-null list
+			currIndex++;
+			while (( currIndex < tableSize) && (hashTable[ currIndex] == null)) {
+				currIndex++;
+			}
+			//Get the next iterator
+			if ( currIndex < tableSize) {
+			    currIt = hashTable[ currIndex].iterator( );	
+			}
+		}
+		
+		@Override
+		public boolean hasNext() {
+			// Test nextItem
+			if ( (currIt != null) && currIt.hasNext( ) ) {
+			    return true;
+			}
+			else {
+				getNextList( );
+				if ( (currIt != null) && currIt.hasNext( ) ) {
+					return true;
+				}
+			}
+			
+			return false;
+		}
+
+		@Override
+		public E next() {
+			E returnItem = null;
+			
+			//get the next item from the current list
+			if ( currIt == null) {
+				return null;
+			}
+			else if ( currIt.hasNext( )) { 
+			    returnItem = currIt.next( );
+			    if ( !currIt.hasNext( )) {
+			    	getNextList( );
+			    }
+			}
+			
+			return returnItem;
+
+		}
+
+		@Override
+		public void remove() {
+			//Not implemented
+		}
+	}	
+	
+	
+	// ----------------------
+	// ---- Constructors ----
+	// ----------------------	
+	@SuppressWarnings("unchecked")
+	public OpenChainHashSet( int tableSize) {
+		this.tableSize = tableSize;
+		hashTable = ( DLList<E>[]) new DLList[ tableSize];
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	public OpenChainHashSet() {
+		this.tableSize = 101;
+		hashTable = ( DLList<E>[]) new DLList[ tableSize];
+	}	
+	
+	// --------------------------------------------
+	// ---- The CompareCount interface methods ----
+	// --------------------------------------------	
+	
+	/* (non-Javadoc)
+	 * @see edu.wou.cs260.SpellChecker.CompareCount#getLastCompareCount()
+	 */
+	@Override
+	public int getLastCompareCount() {
+		// Return compareCount
+		return compareCount;
+	}
+	
+	// -----------------------------------
+	// ---- The Set interface methods ----
+	// -----------------------------------	
+
+	@Override
+	public boolean add(E arg0) {
+		return true;
+	}
+
+	@Override
+	public boolean addAll(Collection<? extends E> arg0) {
+		//Loop through the collection and add the items
+		boolean result = false, changed = true;
+		for( E item: arg0) {
+			result = add( item);
+			if (result) {
+				changed = true;
+			}
+		}
+		return changed;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void clear() {
+		// Toss the existing array of lists and build a new empty array
+		hashTable = ( DLList<E>[]) new DLList[ tableSize];	
+		size = 0;
+	}
+
+	@Override
+	public boolean contains(Object arg0) {
+		
+
+		return true;
+	}
+
+	@Override
+	public boolean containsAll(Collection<?> arg0) {
+		//Loop through the collection and check the items
+		
+		return true;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		// Test the # of items in the table
+		
+	}
+
+	@Override
+	public Iterator<E> iterator() {
+		// TODO Auto-generated method stub
+		return new HTIterator( );
+	}
+
+	@Override
+	public boolean remove(Object arg0) {
+		
+		return true;
+	}
+
+	@Override
+	public boolean removeAll(Collection<?> arg0) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean retainAll(Collection<?> arg0) {
+		//Loop through the collection and add the items
+		boolean result = false, changed = true;
+		for( Object item: arg0) {
+			result = remove( item);
+			if (result) {
+				changed = true;
+			}
+		}
+		return changed;
+	}
+
+	@Override
+	public int size() {
+		return 5;
+	}
+
+	@Override
+	public Object[] toArray() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> T[] toArray(T[] arg0) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	// ----------------------------------------
+	// ---- main for testing purposes only ----
+	// ----------------------------------------	
+	
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		// Smoke test of basic functionality
+		OpenChainHashSet<Integer> hashSet = new OpenChainHashSet<Integer>( 13);
+		
+		hashSet.add( 100);
+		hashSet.add( 300);
+		hashSet.add( 500);
+		hashSet.add( 700);
+		hashSet.add( 900);
+		hashSet.add( 101);
+		hashSet.add( 301);
+		hashSet.add( 501);
+		hashSet.add( 701);
+		hashSet.add( 901);		
+		
+		System.out.print("Contains 100: " + hashSet.contains( 100));
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 300: " + hashSet.contains( 300));
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 500: " + hashSet.contains( 500));
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 700: " + hashSet.contains( 700));		
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 900: " + hashSet.contains( 900));	
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 101: " + hashSet.contains( 101));
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 301: " + hashSet.contains( 301));
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 501: " + hashSet.contains( 501));
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 701: " + hashSet.contains( 701));		
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 901: " + hashSet.contains( 901));	
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());		
+		
+		System.out.print("Contains 200: " + hashSet.contains( 200));
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 400: " + hashSet.contains( 400));
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 600: " + hashSet.contains( 600));
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		System.out.print("Contains 800: " + hashSet.contains( 800));		
+		System.out.println(" Comparisons: " + hashSet.getLastCompareCount());
+		
+		//Print out all of the items
+		Iterator<Integer> it = hashSet.iterator( );
+		while ( it.hasNext( )) {
+			System.out.println("Item: " + it.next( ));
+		}
+		
+	}	
+	
+}
